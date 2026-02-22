@@ -4,7 +4,7 @@ import argparse
 from google import genai
 from dotenv import load_dotenv
 from google.genai import types
-from functions.get_files_info import get_files_info as gfi
+from call_function import config
 
 def main():
     load_dotenv()
@@ -24,11 +24,11 @@ def main():
     ]
 
     response = client.models.generate_content(
-        model='gemini-2.5-flash', 
-        contents=messages
+        model='gemini-3-flash-preview', 
+        contents=messages,
+        config=config
     )
-    print(response.text)
-
+    
     if response is None or response.usage_metadata is None:
         print("Resposta esta malformada")
         return 
@@ -38,5 +38,10 @@ def main():
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count} ")
         print(f"Response tokens: {response.usage_metadata.candidates_token_count} ")
 
-print(gfi("calculator.py"))
-#main()
+    if response.function_calls:
+        for function_call in response.function_calls:
+            print(f"Calling function: {function_call.name}({function_call.args})")
+    else:
+        print(response.text)
+
+main()
